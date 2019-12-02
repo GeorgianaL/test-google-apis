@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
 import './App.css';
 import GoogleLogin from 'react-google-login';
+import ApiCalendar from 'react-google-calendar-api';
+
 import credentials from './credentials.json';
 
-const apiKey = 'AIzaSyB1PRwRANbJvLkAiRJKk4WTNAUjklz2krQ';
+const apiKey = 'AIzaSyAVF3dDnn30WtNV-rwgCxzthb1tqTfgKnA';
 var SCOPES = ["https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.readonly"];
 var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
 
@@ -31,32 +33,16 @@ class App extends Component {
   }
 
   getEvents() {
-    const { userEmail } = this.state;
-    console.log('the events are:');
-    function start() {
-      window.gapi.client.init({
-        'apiKey': apiKey,
-        'clientId': credentials.web.client_id,
-        'scope': SCOPES,
-        'discoveryDocs': DISCOVERY_DOCS,
-        'calendarId': calendarId
-      }).then(function() {
-        return window.gapi.client.request({
-          'path': `https://www.googleapis.com/calendar/v3/calendars/${userEmail}/events`
-          // 'path': 'https://www.googleapis.com/calendar/v3/users/me/calendarList'
-        })
-      }).then((response) => {
-        console.log(response);
+    ApiCalendar.handleAuthClick();
+    ApiCalendar.listUpcomingEvents(10)
+      .then(({result}) => {
+        console.log(result.items);
       });
-    }
-    window.gapi.load('client', start)
   }
 
   render() {
-    console.log(this.state);
     return (
       <div className="App">
-        <h1>LOGIN WITH GOOGLE</h1>
       <GoogleLogin
         clientId={credentials.web.client_id}
         buttonText="LOGIN WITH GOOGLE"
@@ -64,7 +50,7 @@ class App extends Component {
         onFailure={this.failAuth}
       />
       <br />
-      <button onClick={this.getEvents}>Get events</button>
+      <button onClick={this.getEvents}>Get events and see them in console</button>
       </div>
     );
   }
