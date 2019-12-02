@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import './App.css';
 import GoogleLogin from 'react-google-login';
-import ApiCalendar from 'react-google-calendar-api';
+import ApiCalendar from './GoogleCalendarApi/CalendarApi';
 
 import credentials from './credentials.json';
 
@@ -20,6 +20,7 @@ class App extends Component {
     };
 
     this.getEvents = this.getEvents.bind(this);
+    this.addNewEvent = this.addNewEvent.bind(this);
   }
 
   successAuth = (response) => {
@@ -40,6 +41,45 @@ class App extends Component {
       });
   }
 
+  addNewEvent() {
+    const eventDuration = 30;
+
+    const newEvent = {
+      summary: "Poc Dev From Now",
+      start: {
+        dateTime: (new Date(new Date().getTime() + 60000000)),
+        timeZone: "Europe/Bucharest",
+      },
+      end: {
+        dateTime: (new Date(new Date().getTime() + 60000000 + eventDuration * 60000)),
+        timeZone: "Europe/Bucharest",
+      },
+  };
+ 
+  ApiCalendar.createEvent(newEvent)
+    .then(result => {
+      console.log(result);
+        })
+     .catch(error => {
+       console.log(error);
+        });
+  }
+
+  addEventFromNow() {
+    const eventFromNow = {
+      summary: "Poc Dev From Now",
+      time: 40,
+  };
+ 
+  ApiCalendar.createEventFromNow(eventFromNow)
+    .then((result) => {
+      console.log(result);
+        })
+     .catch((error) => {
+       console.log(error);
+        });
+  }
+
   render() {
     return (
       <div className="App">
@@ -51,6 +91,8 @@ class App extends Component {
       />
       <br />
       <button onClick={this.getEvents}>Get events and see them in console</button>
+      <button onClick={this.addNewEvent}>Add event</button>
+      <button onClick={this.addEventFromNow}>Add event from now</button>
       </div>
     );
   }
