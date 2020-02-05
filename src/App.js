@@ -1,44 +1,60 @@
-import React, {Component} from 'react';
-import './App.css';
-import GoogleLogin from 'react-google-login';
-import ApiCalendar from './GoogleCalendarApi/CalendarApi';
+import React, { Component } from "react";
+import moment from "moment";
+import { Calendar, momentLocalizer, Views } from "react-big-calendar";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./App.css";
+import ApiCalendar from "./GoogleCalendarApi/CalendarApi";
 
-import credentials from './credentials.json';
-
-const apiKey = 'AIzaSyAVF3dDnn30WtNV-rwgCxzthb1tqTfgKnA';
-var SCOPES = ["https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.readonly"];
-var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
-
-const calendarId = 'jtshko45fsrsgl5g7rsm1ppnkc@group.calendar.google.com';
+const parseEvent = event => ({
+  id: event.id,
+  title: event.summary,
+  description: event.description,
+  start: new Date(event.start.dateTime),
+  end: new Date(event.end.dateTime),
+  creator: event.creator,
+  organizer: event.organizer,
+  attendees: event.attendees || []
+});
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      userEmail: '',
-      events: [],
+      defaultDate: new Date(),
+      events: []
     };
 
     this.getEvents = this.getEvents.bind(this);
     this.addNewEvent = this.addNewEvent.bind(this);
   }
 
-  successAuth = (response) => {
-    this.setState({
-      userEmail: response.profileObj.email
-    });
-  }
+  // successAuth = response => {
+  //   this.setState({
+  //     userEmail: response.profileObj.email
+  //   });
+  // };
 
-  failAuth = (response) => {
-    console.log(response);
-  }
+  // failAuth = response => {
+  //   console.log(response);
+  // };
+
+  changeFocusedDate = date => {
+    this.setState({
+      defaultDate: date
+    });
+    this.getEvents();
+  };
 
   getEvents() {
+    const { defaultDate } = this.state;
+
     ApiCalendar.handleAuthClick();
-    ApiCalendar.listUpcomingEvents(10)
-      .then(({result}) => {
-        console.log(result.items);
+    ApiCalendar.listUpcomingEvents(defaultDate).then(({ result }) => {
+      const events = result.items.map(item => parseEvent(item));
+      this.setState({
+        events
       });
+    });
   }
 
   addNewEvent() {
@@ -47,52 +63,48 @@ class App extends Component {
     const newEvent = {
       summary: "Poc Dev From Now",
       start: {
-        dateTime: (new Date(new Date().getTime() + 60000000)),
-        timeZone: "Europe/Bucharest",
+        dateTime: new Date(new Date().getTime() + 60000000),
+        timeZone: "Europe/Bucharest"
       },
       end: {
-        dateTime: (new Date(new Date().getTime() + 60000000 + eventDuration * 60000)),
-        timeZone: "Europe/Bucharest",
+        dateTime: new Date(
+          new Date().getTime() + 60000000 + eventDuration * 60000
+        ),
+        timeZone: "Europe/Bucharest"
       },
-  };
- 
-  ApiCalendar.createEvent(newEvent)
-    .then(result => {
-      console.log(result);
-        })
-     .catch(error => {
-       console.log(error);
-        });
-  }
+      attendees: [{ email: "ionela@mailinator.com" }]
+    };
 
-  addEventFromNow() {
-    const eventFromNow = {
-      summary: "Poc Dev From Now",
-      time: 40,
-  };
- 
-  ApiCalendar.createEventFromNow(eventFromNow)
-    .then((result) => {
-      console.log(result);
-        })
-     .catch((error) => {
-       console.log(error);
-        });
+    ApiCalendar.createEvent(newEvent)
+      .then(result => {
+        console.log(result);
+      })
+      .catch(error => {
+        console.log(error);
+      });
   }
 
   render() {
+    const { defaultDate } = this.state;
+    const { events } = this.state;
+    const localizer = momentLocalizer(moment);
+    const allViews = Object.keys(Views).map(k => Views[k]);
+    console.log(events);
     return (
       <div className="App">
-      <GoogleLogin
-        clientId={credentials.web.client_id}
-        buttonText="LOGIN WITH GOOGLE"
-        onSuccess={this.successAuth}
-        onFailure={this.failAuth}
-      />
-      <br />
-      <button onClick={this.getEvents}>Get events and see them in console</button>
-      <button onClick={this.addNewEvent}>Add event</button>
-      <button onClick={this.addEventFromNow}>Add event from now</button>
+        <Calendar
+          defaultView={Views.WORK_WEEK}
+          step={15}
+          timeslots={8}
+          localizer={localizer}
+          events={events}
+          views={allViews}
+          defaultDate={defaultDate}
+          date={defaultDate}
+          onNavigate={this.changeFocusedDate}
+        />
+        <button onClick={this.getEvents}>Get events</button>
+        <button onClick={this.addNewEvent}>Add event</button>
       </div>
     );
   }
