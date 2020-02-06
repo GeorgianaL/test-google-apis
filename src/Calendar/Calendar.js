@@ -5,6 +5,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import withGoogleApps from "../hoc/withGoogleApps";
 import Config from "../apiGoogleconfig";
 import ApiCalendar from "../GoogleCalendarApi/CalendarApi";
+import ToggleSwitch from "../components/ToggleSwitch";
 
 const parseEvent = event => ({
   id: event.id,
@@ -21,36 +22,36 @@ class AppCalendar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      sign: ApiCalendar.sign,
       defaultDate: new Date(),
       events: [],
-      gapiReady: false
+      isSignedIn: props.isSignedIn
     };
-
-    this.signUpdate = this.signUpdate.bind(this);
-    ApiCalendar.onLoad(() => {
-      ApiCalendar.listenSign(this.signUpdate);
-    });
   }
 
-  signUpdate(sign) {
-    this.setState({
-      sign
-    });
+  static getDerivedStateFromProps(props, state) {
+    if (props.signedIn !== state.signedIn) {
+      return {
+        ...state,
+        signedIn: props.signedIn
+      };
+    }
+    return null;
   }
 
-  syncWithGoogle = () => {
-    const script = document.createElement("script");
-    script.src = "https://apis.google.com/js/client.js";
-
-    script.onload = () => {
-      window.gapi.load("client", () => {
-        window.gapi.client.setApiKey(Config.apiKey);
-        window.gapi.client.load("calendar", "v3", () => {
-          this.setState({ gapiReady: true });
-        });
-      });
-    };
+  changeSyncToggle = () => {
+    const { isSignedIn } = this.state;
+    this.setState(
+      {
+        isSignedIn: !isSignedIn
+      },
+      () => {
+        if (isSignedIn) {
+          this.props.googleSignOut();
+        } else {
+          this.props.googleSignIn();
+        }
+      }
+    );
   };
 
   changeFocusedDate = date => {
@@ -63,13 +64,13 @@ class AppCalendar extends Component {
   getEvents = () => {
     const { defaultDate } = this.state;
 
-    ApiCalendar.handleAuthClick();
-    ApiCalendar.listUpcomingEvents(defaultDate).then(({ result }) => {
-      const events = result.items.map(item => parseEvent(item));
-      this.setState({
-        events
-      });
-    });
+    // ApiCalendar.handleAuthClick();
+    // ApiCalendar.listUpcomingEvents(defaultDate).then(({ result }) => {
+    //   const events = result.items.map(item => parseEvent(item));
+    //   this.setState({
+    //     events
+    //   });
+    // });
   };
 
   addNewEvent = () => {
@@ -90,23 +91,24 @@ class AppCalendar extends Component {
       attendees: [{ email: "ionela@mailinator.com" }]
     };
 
-    ApiCalendar.createEvent(newEvent)
-      .then(result => {
-        console.log(result);
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    // ApiCalendar.createEvent(newEvent)
+    //   .then(result => {
+    //     console.log(result);
+    //   })
+    //   .catch(error => {
+    //     console.log(error);
+    //   });
 
     this.getEvents();
   };
 
   render() {
-    const { defaultDate, sign } = this.state;
+    const { defaultDate, isSignedIn } = this.state;
     const { events } = this.state;
     const localizer = momentLocalizer(moment);
     const allViews = Object.keys(Views).map(k => Views[k]);
-    console.log(sign);
+
+    console.log(isSignedIn);
     return (
       <div className="App">
         <Calendar
@@ -121,10 +123,20 @@ class AppCalendar extends Component {
           onNavigate={this.changeFocusedDate}
         />
         <div>
-          <div>{this.state.sign}</div>
-          <button onClick={this.syncWithGoogle}>
-            Sync with your google account
-          </button>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div>
+              <ToggleSwitch
+                id="googleSync"
+                name="googleSync"
+                onChange={this.changeSyncToggle}
+                defaultChecked={isSignedIn}
+                small
+              />
+            </div>
+            <span style={{ padding: "0px 10px" }}>
+              Sync with your google account
+            </span>
+          </div>
           <button onClick={this.getEvents}>Get events</button>
           <button onClick={this.addNewEvent}>Add event</button>
         </div>

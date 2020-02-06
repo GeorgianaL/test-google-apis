@@ -2,7 +2,8 @@ import Config from "../apiGoogleconfig.json";
 import { firstDayOfMonth, lastDayOfMonth } from "../utils/time";
 
 class ApiCalendar {
-  constructor() {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
     this.sign = false;
     this.gapi = null;
     this.onLoadCallback = null;
