@@ -1,0 +1,12 @@
+{
+  "credentials": {
+    "api-key": "AIzaSyAVF3dDnn30WtNV-rwgCxzthb1tqTfgKnA",
+    "client-id": "310763681489-pf0bkcs4qfacukhvl8pq839jbrblurqn.apps.googleusercontent.com"
+  },
+  "events": [
+    {
+      "start": "now",
+      "end": "then"
+    }
+  ]
+}

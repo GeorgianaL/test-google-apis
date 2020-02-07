@@ -1,7 +1,5 @@
 import React from "react";
 import { Spinner } from "react-bootstrap";
-import ApiCalendar from "../GoogleCalendarApi/CalendarApi";
-import credentials from "../apiGoogleconfig.json";
 
 const withGoogleCredentials = WrappedComponent => {
   class ComponentWithGoogleAPI extends React.Component {
@@ -13,34 +11,20 @@ const withGoogleCredentials = WrappedComponent => {
       this.ApiCalendar = null;
       this.state = {
         gapiReady: false,
-        isSignedIn: false
+        isSignedIn: false,
+        profile: {
+          email: ""
+        }
       };
       this.updateSigninStatus = this.updateSigninStatus.bind(this);
       this.handleClientLoad = this.handleClientLoad.bind(this);
+      this.initClient = this.initClient.bind(this);
     }
 
     componentDidMount() {
       // const apiKey = credentials.apiKey;
-      // this.loadGoogleAPI(apiKey);
       this.handleClientLoad();
     }
-
-    // loadGoogleAPI(apiKey) {
-    //   const script = document.createElement("script");
-    //   script.src = "https://apis.google.com/js/client.js";
-
-    //   script.onload = () => {
-    //     window.gapi.load("client", () => {
-    //       window.gapi.client.setApiKey(apiKey);
-    //       window.gapi.client.load("calendar", "v3", () => {
-    //         this.setState({ gapiReady: true });
-    //       });
-    //     });
-    //   };
-
-    //   document.body.appendChild(script);
-    //   this.gapi = window["gapi"];
-    // }
 
     /**
      * Update connection status.
@@ -66,7 +50,8 @@ const withGoogleCredentials = WrappedComponent => {
           scope: "https://www.googleapis.com/auth/calendar",
           discoveryDocs: [
             "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"
-          ]
+          ],
+          prompt: "select_account"
         })
         .then(() => {
           // Listen for sign-in state changes.
@@ -102,20 +87,34 @@ const withGoogleCredentials = WrappedComponent => {
     }
 
     signIn = () => {
-      window["gapi"].auth2.getAuthInstance().signIn();
+      this.gapi.auth2
+        .getAuthInstance()
+        .signIn()
+        .then(googleUser => {
+          const profile = googleUser.getBasicProfile();
+          const email = profile.getEmail();
+          this.setState({ profile: { email } });
+        })
+        .catch(() => console.log("is not"));
     };
 
     signOut = () => {
-      window["gapi"].auth2.getAuthInstance().signOut();
+      this.gapi.auth2
+        .getAuthInstance()
+        .signOut()
+        .then(() => {
+          this.setState({ gapiReady: false });
+        });
+      this.gapi.auth2.getAuthInstance().disconnect();
     };
 
     render() {
-      const { gapiReady } = this.state;
+      const { gapiReady, isSignedIn } = this.state;
       console.log(this.state);
       if (gapiReady)
         return (
           <WrappedComponent
-            isSignedIn={gapiReady}
+            isSignedIn={isSignedIn}
             googleSignOut={this.signOut}
             googleSignIn={this.signIn}
           />

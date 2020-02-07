@@ -3,20 +3,20 @@ import moment from "moment";
 import { Calendar, momentLocalizer, Views } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import withGoogleApps from "../hoc/withGoogleApps";
-import Config from "../apiGoogleconfig";
-import ApiCalendar from "../GoogleCalendarApi/CalendarApi";
+// import Config from "../apiGoogleconfig";
+// import ApiCalendar from "../GoogleCalendarApi/CalendarApi";
 import ToggleSwitch from "../components/ToggleSwitch";
 
-const parseEvent = event => ({
-  id: event.id,
-  title: event.summary,
-  description: event.description,
-  start: new Date(event.start.dateTime),
-  end: new Date(event.end.dateTime),
-  creator: event.creator,
-  organizer: event.organizer,
-  attendees: event.attendees || []
-});
+// const parseEvent = event => ({
+//   id: event.id,
+//   title: event.summary,
+//   description: event.description,
+//   start: new Date(event.start.dateTime),
+//   end: new Date(event.end.dateTime),
+//   creator: event.creator,
+//   organizer: event.organizer,
+//   attendees: event.attendees || []
+// });
 
 class AppCalendar extends Component {
   constructor(props) {
@@ -29,10 +29,10 @@ class AppCalendar extends Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    if (props.signedIn !== state.signedIn) {
+    if (props.isSignedIn !== state.isSignedIn) {
       return {
         ...state,
-        signedIn: props.signedIn
+        isSignedIn: props.isSignedIn
       };
     }
     return null;
@@ -62,8 +62,7 @@ class AppCalendar extends Component {
   };
 
   getEvents = () => {
-    const { defaultDate } = this.state;
-
+    // const { defaultDate } = this.state;
     // ApiCalendar.handleAuthClick();
     // ApiCalendar.listUpcomingEvents(defaultDate).then(({ result }) => {
     //   const events = result.items.map(item => parseEvent(item));
@@ -74,22 +73,22 @@ class AppCalendar extends Component {
   };
 
   addNewEvent = () => {
-    const eventDuration = 30;
+    // const eventDuration = 30;
 
-    const newEvent = {
-      summary: "Poc Dev From Now",
-      start: {
-        dateTime: new Date(new Date().getTime() + 60000000),
-        timeZone: "Europe/Bucharest"
-      },
-      end: {
-        dateTime: new Date(
-          new Date().getTime() + 60000000 + eventDuration * 60000
-        ),
-        timeZone: "Europe/Bucharest"
-      },
-      attendees: [{ email: "ionela@mailinator.com" }]
-    };
+    // const newEvent = {
+    //   summary: "Poc Dev From Now",
+    //   start: {
+    //     dateTime: new Date(new Date().getTime() + 60000000),
+    //     timeZone: "Europe/Bucharest"
+    //   },
+    //   end: {
+    //     dateTime: new Date(
+    //       new Date().getTime() + 60000000 + eventDuration * 60000
+    //     ),
+    //     timeZone: "Europe/Bucharest"
+    //   },
+    //   attendees: [{ email: "ionela@mailinator.com" }]
+    // };
 
     // ApiCalendar.createEvent(newEvent)
     //   .then(result => {
@@ -103,7 +102,8 @@ class AppCalendar extends Component {
   };
 
   render() {
-    const { defaultDate, isSignedIn } = this.state;
+    const { defaultDate } = this.state;
+    const { isSignedIn } = this.props;
     const { events } = this.state;
     const localizer = momentLocalizer(moment);
     const allViews = Object.keys(Views).map(k => Views[k]);
@@ -130,7 +130,6 @@ class AppCalendar extends Component {
                 name="googleSync"
                 onChange={this.changeSyncToggle}
                 defaultChecked={isSignedIn}
-                small
               />
             </div>
             <span style={{ padding: "0px 10px" }}>
